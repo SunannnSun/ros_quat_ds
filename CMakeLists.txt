@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   ros_pybullet_interface
+  ik_ros
 )
 
 
@@ -162,7 +163,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/run_franka.py
+  scripts/run_franka_joint_state.py
+
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -18,6 +18,7 @@
   <depend>std_msgs</depend>
   <depend>cob_srvs</depend>
   <depend>sensor_msgs</depend>
+  <depend>ik_ros</depend>
   <depend>ros_pybullet_interface</depend>
 
 </package>
