@@ -35,7 +35,7 @@ resetDebugVisualizerCamera:
 #
 
 robots:
-  - "{rpbi_examples}/configs/run_franka/franka.yaml"
+  - "{ros_quat_ds}/configs/run_franka/franka.yaml"
 
 collision_objects:
-  - "{rpbi_examples}/configs/floor.yaml"
+  - "{ros_quat_ds}/configs/floor.yaml"

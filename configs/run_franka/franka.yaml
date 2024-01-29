@@ -1,7 +1,7 @@
 name: "franka"
 
 loadURDF:
-  fileName: "{rpbi_examples}/robots/panda_arm.urdf"
+  fileName: "{franka_panda_description}/robots/panda_arm.urdf"
   useFixedBase: 1
   basePosition: [0, 0., 0.]
 
