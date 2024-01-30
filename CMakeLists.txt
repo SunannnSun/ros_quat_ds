@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   ros_pybullet_interface
   ik_ros
+  
+  ik_ros_examples
 )
 
 
@@ -165,6 +167,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/run_franka_joint_state.py
   scripts/run_franka_eff_state.py
+  # scripts/run_interpolation.py
 
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

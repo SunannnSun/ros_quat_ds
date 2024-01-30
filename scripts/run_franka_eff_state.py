@@ -73,6 +73,15 @@ class Node(RosNode):
         # rospy.loginfo(self.eff.get_pos())
 
 
+    def command_vel(self):
+        """
+        If given a position trajectory in task space, surely we can pass each state and perform IK to track the trajectory,
+        but the computation is heavy and as we saw delay occurs between updating and retrieving transformation. Hence, the 
+        best way to command the robot is through velocity command. 
+        
+        """
+        pass
+
     def move_to_given_pose(self):
         """
         Unlike move_to_initial_pose which moves to a pre-defined initial state defined in the launch file, this method
@@ -104,7 +113,8 @@ class Node(RosNode):
             rospy.logerr("could not recieve end-effector target transform")
             sys.exit(0)
 
-
+        # init_eff_pos, init_eff_rot = self.tf.wait_for_tf('rpbi/world', 'target')
+        
         problem = CalculateInverseKinematicsProblem()
         problem.link_name = 'panda_link8'
         problem.targetPosition = init_eff_pos

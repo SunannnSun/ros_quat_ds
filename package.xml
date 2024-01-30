@@ -20,5 +20,5 @@
   <depend>sensor_msgs</depend>
   <depend>ik_ros</depend>
   <depend>ros_pybullet_interface</depend>
-
+  <depend>ik_ros_examples</depend>
 </package>
