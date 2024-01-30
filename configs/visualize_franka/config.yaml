@@ -1,0 +1,41 @@
+#
+# Pybullet instance
+#
+connect:
+  connection_mode: 'GUI'
+
+setGravity:
+  gravX: 0.0
+  gravY: 0.0
+  gravZ: -9.81
+
+timeStep: 0.01
+start_pybullet_after_initialization: true
+status_hz: 50
+
+
+
+#
+# Pybullet visualizer
+#
+configureDebugVisualizer:
+  enable: 0
+  flag: 'COV_ENABLE_GUI'
+
+resetDebugVisualizerCamera:
+  cameraDistance: 2.0
+  cameraYaw: 45
+  cameraPitch: -10.0
+  cameraTargetPosition: [0.0, 0.0, 0.35]
+
+
+
+#
+# Pybullet objects
+#
+
+robots:
+  - "{ros_quat_ds}/configs/visualize_franka/franka.yaml"
+
+collision_objects:
+  - "{ros_quat_ds}/configs/floor.yaml"
