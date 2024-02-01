@@ -65,10 +65,8 @@ class Node(RosNode):
 
         self.move_to_eff_state = get_srv_handler(f'rpbi/{robot_name}/move_to_eff_state', ResetEffState, persistent=True)
       
-        self.move_to_initial_pose()
 
-        # self.move_to_given_pose()
-        self.move_to_initial_pose()
+        # self.move_to_initial_pose()
 
         # rospy.loginfo(self.eff.get_pos())
 
@@ -93,7 +91,7 @@ class Node(RosNode):
         self.tf.set_tf('rpbi/world',
                         'target',
                         0.2* np.ones((3,)),
-                        tf_conversions.transformations.quaternion_from_euler(0, 0, 0)
+                        tf_conversions.transformations.quaternion_from_euler(math.pi, 0, 0)
         )
         """
         It takes time to broadcast the transformation. Hence if we try to get the updated or the new transformation immediately
@@ -104,23 +102,34 @@ class Node(RosNode):
         timeout = 5
         start_time = time.time()
 
-        while (time.time()-start_time) < timeout:
-            init_eff_pos, init_eff_rot = self.tf.get_tf('rpbi/world', 'target')
-            if init_eff_pos is not None:
-                rospy.loginfo(init_eff_pos)
-                break
-        else:
-            rospy.logerr("could not recieve end-effector target transform")
-            sys.exit(0)
+        # while (time.time()-start_time) < timeout:
+        #     init_eff_pos, init_eff_rot = self.tf.get_tf('rpbi/world', 'target')
+        #     if init_eff_pos is not None:
+        #         rospy.loginfo(init_eff_pos)
+        #         break
+        # else:
+        #     rospy.logerr("could not recieve end-effector target transform")
+        #     sys.exit(0)
 
-        # init_eff_pos, init_eff_rot = self.tf.wait_for_tf('rpbi/world', 'target')
+        # # init_eff_pos, init_eff_rot = self.tf.wait_for_tf('rpbi/world', 'target')
         
+
+        # #  get current TF of robot end effector
+        # init_eff_pos, _ = self.tf.wait_for_tf(
+        #     'rpbi/world', 'rpbi/franka/panda_link8')
+
+
+        # init_eff_pos, init_eff_rot = self.tf.wait_for_tf('rpbi/world', 'rpbi/franka/panda_link8')
+        
+        init_eff_pos = np.array([0.6, 0, 0.17])
+        init_eff_rot = np.array([9.99999683e-01, 0.00000000e+00, 0.00000000e+00, 7.96326711e-04])
+
         problem = CalculateInverseKinematicsProblem()
         problem.link_name = 'panda_link8'
         problem.targetPosition = init_eff_pos
         problem.targetOrientation = init_eff_rot
 
-        duration = 2.0
+        duration = 5.0
         req = ResetEffStateRequest(problem=problem, duration=duration)
 
         self.move_to_eff_state(req)
@@ -150,6 +159,9 @@ class Node(RosNode):
             rospy.logerr("could not recieve end-effector target transform")
             sys.exit(0)
 
+
+        rospy.loginfo(init_eff_rot )
+
         # Setup problem
         problem = CalculateInverseKinematicsProblem()
         problem.link_name = 'panda_link8'
@@ -165,6 +177,10 @@ class Node(RosNode):
 
 
     def spin(self):
+
+        # self.move_to_initial_pose()
+
+        self.move_to_given_pose()
         rospy.Rate(100.0)
         rospy.spin()
 

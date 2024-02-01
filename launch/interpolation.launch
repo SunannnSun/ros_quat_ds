@@ -5,26 +5,34 @@
   <!-- == -->
 
   <!-- Setup IK -->
+
+
   <node pkg="ik_ros" name="ik_setup" type="ik_setup_node.py" args="trac_ik" output="screen">
-    <param name="parent_frame_id" type="str" value="rpbi/kuka_lwr/panda_link0"/>
-    <param name="child_frame_id" type="str" value="interpol_target"/>
-    <param name="start_on_init" type="bool" value="true"/>
-    <param name="init_brx" type="double" value="10.0"/>
-    <param name="init_bry" type="double" value="10.0"/>
-    <param name="init_brz" type="double" value="10.0"/>
-    <remap from="ik/setup/trac_ik/qinit" to="rpbi/kuka_lwr/joint_states"/>
+    <param name="parent_frame_id" type="str" value="rpbi/franka/panda_link0"/>
+    <param name="child_frame_id" type="str" value="target"/>
+    <param name="start_on_init" type="bool" value="false"/>
+    <remap from="ik/setup/trac_ik/qinit" to="rpbi/franka/joint_states"/>
   </node>
 
 
-
   <!-- IK solver interface -->
-  <node pkg="ik_ros" name="ik_node" type="ik_solver_node.py" args="trac_ik" output="screen">
+  <!-- <node pkg="ik_ros" name="ik_node" type="ik_solver_node.py" args="trac_ik" output="screen">
     <param name="urdf_filename" type="string" value="{franka_panda_description}/robots/panda_arm.urdf"/>
     <param name="tip_link" type="string" value="panda_link0"/>
     <param name="base_link" type="string" value="panda_link8"/>
     <param name="start_on_init" type="bool" value="true"/>
-    <remap from="joint_states/target" to="rpbi/kuka_lwr/joint_states/target"/>
+    <remap from="joint_states/target" to="rpbi/franka/joint_states/target"/>
+  </node> -->
+
+
+  <node pkg="ik_ros" name="ik_node" type="ik_solver_node.py" args="trac_ik" output="screen">
+    <param name="urdf_filename" type="string" value="{franka_panda_description}/robots/panda_arm.urdf"/>
+    <param name="tip_link" type="string" value="panda_link8"/>
+    <param name="base_link" type="string" value="panda_link0"/>
+    <param name="start_on_init" type="bool" value="true"/>
+    <remap from="joint_states/target" to="rpbi/franka/joint_states/target"/> 
   </node>
+
 
 
 
@@ -55,20 +63,17 @@
   <!-- Interpolation -->
   <!-- ============= -->
   <node  pkg="rpbi_utils" name="interpolation"  type="interpolation_node.py" output="screen">
-    <!-- Traj config (required) -->
-    <param name="traj_config" value="$(find ros_quat_ds)/configs/interpolation/traj_lwr.yaml" type="str"/>
+    <param name="traj_config" value="$(find ros_quat_ds)/configs/interpolation/traj.yaml" type="str"/>
     <param name="consuming_freq" value="100.0" type="double"/>
 
-    <remap from="ros_pybullet_interface/waypt_traj" to="kuka_lwr/ros_pybullet_interface/end_effector/waypt_traj"/>
-
-
+    <remap from="ros_pybullet_interface/waypt_traj" to="franka/ros_pybullet_interface/end_effector/waypt_traj"/>
  </node>
 
   <!-- Run example -->
   <!-- =========== -->
 
   <node pkg="ros_quat_ds" name="run" type="run_interpolation.py" output="screen">
-    <param name="topic_name_4_waypoints" value="kuka_lwr/ros_pybullet_interface/end_effector/waypt_traj" type="str"/>
+    <param name="topic_name_4_waypoints" value="franka/ros_pybullet_interface/end_effector/waypt_traj" type="str"/>
   </node>
 
 </launch>

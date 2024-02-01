@@ -24,6 +24,5 @@ interpolation:
 
 communication:
   publisher:
-    # header_frame_id: 'rpbi/kuka_lwr/lwr_arm_0_link'
-    header_frame_id: 'rpbi/kuka_lwr/panda_link0'
+    header_frame_id: 'rpbi/franka/panda_link0'
     msg_child_frame_id: 'interpol_target'

@@ -81,28 +81,32 @@ class Node:
 
         #  get current TF of robot end effector
         init_eff_pos, init_eff_rot = self.tf.wait_for_tf(
-            'rpbi/world', 'rpbi/kuka_lwr/panda_link8')
+            'rpbi/world', 'rpbi/franka/panda_link8')
 
+
+        rospy.logwarn(init_eff_rot)
+        init_eff_rot = [0, 0, 0, -1]
         #
         # Manually create a sequence of waypoints
         #
 
         # make the time axis of the waypoints
         timeSeq = np.array([0.0, 4.0, 9.0, 14.0])
+        # timeSeq = np.array([0.0, 10.0])
 
         # initial position of the robot
         init_pose = np.hstack((init_eff_pos, init_eff_rot))
 
         # corresponds to green sphere
-        wpt1_pos = np.array([-0.4, -0.0, 0.1])
+        wpt1_pos = np.array([0.6, 0, 0.17])
         wpt1 = np.hstack((wpt1_pos, init_eff_rot))
 
         # corresponds to blue sphere
-        wpt2_pos = np.array([-0.5, 0.2, 0.3])
+        wpt2_pos = np.array([0.58, 0.1, 0.3])
         wpt2 = np.hstack((wpt2_pos, init_eff_rot))
 
         # corresponds to red sphere
-        wpt3_pos = np.array([-0.15, 0.4, 0.2])
+        wpt3_pos = np.array([0.55, 0.14, 0.2])
         wpt3 = np.hstack((wpt3_pos, init_eff_rot))
 
         # generate the position of the waypoints
@@ -129,9 +133,9 @@ class Node:
 
     def collect_interpol_plan_and_actual_motion_data(self):
 
-        interpol_eff_pos, _ = self.tf.get_tf('rpbi/kuka_lwr/panda_link0', 'interpol_target')
-        curr_eff_pos, _ = self.tf.get_tf('rpbi/world', 'rpbi/kuka_lwr/panda_link8')
-        rospy.logwarn(interpol_eff_pos)
+        interpol_eff_pos, _ = self.tf.get_tf('rpbi/franka/panda_link0', 'interpol_target')
+        curr_eff_pos, _ = self.tf.get_tf('rpbi/world', 'rpbi/franka/panda_link8')
+        # rospy.logwarn(interpol_eff_pos)
 
         if interpol_eff_pos is not None:
             self.interpol_plan.append(interpol_eff_pos)

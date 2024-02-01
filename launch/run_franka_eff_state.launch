@@ -18,13 +18,18 @@
   <!-- == -->
 
   <!-- Setup IK -->
+  <!-- <node pkg="ik_ros" name="ik_setup" type="ik_setup_node.py" args="trac_ik" output="screen">
+    <param name="parent_frame_id" type="str" value="rpbi/franka/panda_link0"/>
+    <param name="child_frame_id" type="str" value="target"/>
+    <param name="start_on_init" type="bool" value="true"/>
+    <remap from="ik/setup/trac_ik/qinit" to="rpbi/franka/joint_states"/>
+  </node> -->
+
+
   <node pkg="ik_ros" name="ik_setup" type="ik_setup_node.py" args="trac_ik" output="screen">
     <param name="parent_frame_id" type="str" value="rpbi/franka/panda_link0"/>
     <param name="child_frame_id" type="str" value="target"/>
     <param name="start_on_init" type="bool" value="false"/>
-    <param name="init_brx" type="double" value="10.0"/>
-    <param name="init_bry" type="double" value="10.0"/>
-    <param name="init_brz" type="double" value="10.0"/>
     <remap from="ik/setup/trac_ik/qinit" to="rpbi/franka/joint_states"/>
   </node>
 
@@ -35,7 +40,7 @@
     <param name="urdf_filename" type="string" value="{franka_panda_description}/robots/panda_arm.urdf"/>
     <param name="tip_link" type="string" value="panda_link8"/>
     <param name="base_link" type="string" value="panda_link0"/>
-    <param name="start_on_init" type="bool" value="false"/>
+    <param name="start_on_init" type="bool" value="true"/>
     <remap from="joint_states/target" to="rpbi/franka/joint_states/target"/> 
   </node>
 

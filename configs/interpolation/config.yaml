@@ -27,10 +27,11 @@ configureDebugVisualizer:
   flag: 'COV_ENABLE_GUI'
 
 resetDebugVisualizerCamera:
-  cameraDistance: 1.0
-  cameraYaw: -45
-  cameraPitch: -45.0
-  cameraTargetPosition: [-0.6, 0.0, 0.3]
+  cameraDistance: 2.0
+  cameraYaw: 45
+  cameraPitch: -10.0
+  cameraTargetPosition: [0.0, 0.0, 0.35]
+
 
 
 #
@@ -43,6 +44,5 @@ visual_objects:
 collision_objects:
   - "{ros_quat_ds}/configs/floor.yaml"
 robots:
-  # - "{rpbi_examples}/configs/interpolation/kuka_lwr.yaml"
   - "{ros_quat_ds}/configs/interpolation/franka.yaml"
 
