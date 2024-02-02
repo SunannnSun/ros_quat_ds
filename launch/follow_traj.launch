@@ -1,0 +1,37 @@
+<launch>
+
+<!-- This launch file will move robots to follow a pre-defined time indexed trajectory using Pybullet IK setup. -->
+
+
+<node pkg="ros_pybullet_interface" name="ros_pybullet_interface_node" type="ros_pybullet_interface_node.py">
+    <rosparam param="config" file="$(find ros_quat_ds)/configs/follow_traj/config.yaml"/>
+</node>
+
+
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="motion_base_in_world"
+	args="0.6 0 0.17 0 0 3.141 rpbi/world traj_base"/>
+
+
+
+<node pkg="ros_quat_ds" name="traj_setup_node" type="traj_setup_node.py">
+    <param name="start_on_init" type="bool" value="true"/>
+</node>
+
+
+
+<node pkg="ik_ros" name="ik_setup" type="ik_setup_node.py" args="pybullet" output="screen">
+    <rosparam param="config" file="$(find ros_quat_ds)/configs/follow_traj/ik_setup_config.yaml"/>
+    <param name="start_on_init" type="bool" value="false"/>
+    <remap from="ik/setup/pybullet/currentPosition" to="rpbi/franka/joint_states"/>
+    <remap from="ik" to="rpbi/franka/ik"/>
+</node>
+
+
+
+<node pkg="ros_quat_ds" name="start" type="run_follow_traj.py" args="pybullet">
+    <param name="robot_name" type="str" value="franka"/>  
+    <param name="eff_name" type="str" value="panda_link8"/>
+</node>
+
+</launch>

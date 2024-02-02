@@ -1,0 +1,7 @@
+robot_name: "franka"
+link_name: "panda_link8"
+
+
+
+parent_frame_id: "rpbi/world"
+child_frame_id: "traj"
