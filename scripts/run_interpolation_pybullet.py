@@ -8,6 +8,8 @@ from custom_ros_tools.tf import TfInterface
 from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import MultiArrayDimension
 
+from interpolation.utils import load_traj
+
 
 class Node:
 
@@ -69,59 +71,20 @@ class Node:
         return msg
 
     def exec_plan(self):
-
-        # Generate plan
-        rospy.loginfo('generating plan by interpolating between waypoints...')
-
-        # Execute plan
-        rospy.loginfo('generating waypoints ...')
-
+         
         #  get current TF of robot end effector
         init_eff_pos, init_eff_rot = self.tf.wait_for_tf(
             'rpbi/world', 'rpbi/franka/panda_link8')
-
-        #
-        # Manually create a sequence of waypoints
-        #
-
-        # make the time axis of the waypoints
-        timeSeq = np.array([0.0, 4.0, 9.0, 14.0])
-        # timeSeq = np.array([0.0, 4.0])
-
-        # initial position of the robot
-        init_pose = np.hstack((init_eff_pos, init_eff_rot))
-
-        # corresponds to green sphere
-        wpt1_pos = np.array([0.6, 0.1, 0.3])
-        wpt1 = np.hstack((wpt1_pos, init_eff_rot))
-
-        # corresponds to blue sphere
-        wpt2_pos = np.array([0.4, 0.4, 0.3])
-        wpt2 = np.hstack((wpt2_pos, init_eff_rot))
-
-        # corresponds to red sphere
-        wpt3_pos = np.array([0.1, 0.6, 0.2])
-        wpt3 = np.hstack((wpt3_pos, init_eff_rot))
-
-        # generate the position of the waypoints
-        pos_body = np.vstack((init_pose, wpt1))
-        pos_body = np.vstack((pos_body, wpt2))
-        pos_body = np.vstack((pos_body, wpt3)).T
-
-        # generate a rough velocity of the waypoints
-        diff = np.diff(pos_body, axis=1)
-        velBody = pos_body*0.0
-        scale_vel_factor = 0.5
-        velBody[:3, 1:-1] = scale_vel_factor*(diff[:3, :-1] + diff[:3, 1:])/2.0
-
-        # assemble the waypoint plan
-        self.traj_plan = np.vstack((np.vstack((timeSeq, pos_body)), velBody))
+    
+        self.traj_plan = load_traj(init_eff_pos, init_eff_rot)
 
         # publish the waypoint plan
         self.write_callback_timer = rospy.Timer(
             rospy.Duration(1.0/float(2)), self.publish_trajectory)
 
         rospy.loginfo("Waypoints were published!")
+
+
 
     def collect_interpol_plan_and_actual_motion_data(self):
 
