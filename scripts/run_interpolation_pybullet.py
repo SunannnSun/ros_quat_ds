@@ -147,7 +147,7 @@ class Node:
 
     def plot_results(self):
 
-        #
+        # Plot Position
         interpol_plan = np.asarray(self.interpol_plan)
         actual_motion = np.asarray(self.actual_motion)
 
@@ -173,9 +173,10 @@ class Node:
         ax3.plot(time_of_motion, actual_motion[:, 2], 'r')
         ax3.set_title("Z axis")
 
-        fig.suptitle("Linear axes interpolation results", fontsize=16)
+        fig.suptitle("Position Motion Results", fontsize=16)
 
 
+        # Plot Rotation
 
         actual_rotation = np.asarray(self.actual_rotation)
         interpol_rotation = np.asarray(self.interpol_rotation)
@@ -206,7 +207,7 @@ class Node:
         ax3.plot(time_of_motion, -actual_rotation[:, 3], 'r')
         ax3.set_title("Z axis")
 
-        fig.suptitle("actual_rotation", fontsize=16)
+        fig.suptitle("Rotation Motion Results", fontsize=16)
 
 
         plt.show()

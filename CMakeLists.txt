@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   ros_pybullet_interface
   ik_ros
-  
   ik_ros_examples
 )
 
