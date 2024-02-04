@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys
+import sys, os 
 import rospy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +9,20 @@ from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import MultiArrayDimension
 
 
+def load_file():
+
+    file_dir = os.path.dirname(os.path.realpath(__file__)) 
+    file_path  = os.path.join(file_dir, "p_in.npy")
+
+
+    position = np.load(file_path)[0].T 
+    position /= 100
+
+
+    
+
+    return position
+
 
 def load_traj(init_eff_pos, init_eff_rot):
     """ 
@@ -17,33 +31,32 @@ def load_traj(init_eff_pos, init_eff_rot):
     Note: traj_plan has a shape of M by N where M consist of time; position; quaternion; position diff and quatenrion diff
     """
 
+    total_time = 5 
 
     rospy.loginfo('generating plan by interpolating between waypoints...')
 
     rospy.loginfo('generating waypoints ...')
 
 
-    timeSeq = np.array([0.0, 4.0, 9.0, 14.0])
-
     init_pose = np.hstack((init_eff_pos, init_eff_rot))
 
-    wpt1_pos = np.array([0.6, 0.1, 0.3])
-    wpt1 = np.hstack((wpt1_pos, init_eff_rot))
+    position = load_file()
 
-    wpt2_pos = np.array([0.4, 0.4, 0.3])
-    wpt2 = np.hstack((wpt2_pos, init_eff_rot))
 
-    wpt3_pos = np.array([0.1, 0.6, 0.2])
-    wpt3 = np.hstack((wpt3_pos, init_eff_rot))
+    rotation = np.tile(init_eff_rot, (position.shape[0], 1))
 
-    pos_body = np.vstack((init_pose, wpt1))
-    pos_body = np.vstack((pos_body, wpt2))
-    pos_body = np.vstack((pos_body, wpt3)).T
+    pos_body = np.vstack((init_pose, np.hstack((position, rotation)))).T
+
+
 
     diff = np.diff(pos_body, axis=1)
     velBody = pos_body*0.0
     scale_vel_factor = 0.5
     velBody[:3, 1:-1] = scale_vel_factor*(diff[:3, :-1] + diff[:3, 1:])/2.0
+
+
+
+    timeSeq = np.linspace(0, total_time, pos_body.shape[1])
 
     traj_plan = np.vstack((np.vstack((timeSeq, pos_body)), velBody))
 
