@@ -8,10 +8,15 @@ from custom_ros_tools.tf import TfInterface
 from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import MultiArrayDimension
 
+from ros_pybullet_interface.msg import CalculateInverseKinematicsProblem
+from ros_pybullet_interface.srv import ResetEffState, ResetEffStateRequest
+from custom_ros_tools.ros_comm import get_srv_handler
+
 from interpolation.utils import load_traj
 
 
 class Node:
+    move_to_start_duration = 5.0
 
     def __init__(self):
         rospy.init_node('run_interpolation_node')
@@ -31,8 +36,21 @@ class Node:
         # create two lists for storing and plotting reasons
         self.actual_motion = []
         self.interpol_plan = []
+        
+        self.actual_rotation = []
+        self.interpol_rotation = []
+
         self.time_of_motion = []
         self.init_time = 0.0
+
+        # load trajectory
+        self.traj_plan = load_traj()
+
+        # init service
+        self.robot_name = rospy.get_param(f'/ik_setup/config/robot_name')
+        self.eff_name   = rospy.get_param(f'/ik_setup/config/link_name')
+        self.move_to_eff_state = get_srv_handler(f'rpbi/{self.robot_name}/move_to_eff_state', ResetEffState)
+
 
     def publish_trajectory(self, event):
 
@@ -69,6 +87,31 @@ class Node:
         # time is missing from this message
         # msg.header.stamp = rospy.Time.now()
         return msg
+    
+
+    def move_to_initial_pose(self):
+        init_eff_pos = self.traj_plan[1:4, 0]
+        init_eff_rot = self.traj_plan[4:8, 0]
+
+        # Setup problem
+        problem = CalculateInverseKinematicsProblem()
+        problem.link_name = self.eff_name
+        problem.targetPosition = init_eff_pos
+        problem.targetOrientation = init_eff_rot
+
+        # Setup request
+        duration = self.move_to_start_duration
+        req = ResetEffStateRequest(problem=problem, duration=duration)
+
+        # # Start remapper
+        # if self.real_robot:
+        #     self.toggle_remapper(True)
+
+        # Move robot
+        self.move_to_eff_state(req)
+
+
+
 
     def exec_plan(self):
          
@@ -76,7 +119,7 @@ class Node:
         init_eff_pos, init_eff_rot = self.tf.wait_for_tf(
             'rpbi/world', 'rpbi/franka/panda_link8')
     
-        self.traj_plan = load_traj(init_eff_pos, init_eff_rot)
+        # self.traj_plan = load_traj(init_eff_pos, init_eff_rot)
 
         # publish the waypoint plan
         self.write_callback_timer = rospy.Timer(
@@ -88,12 +131,16 @@ class Node:
 
     def collect_interpol_plan_and_actual_motion_data(self):
 
-        interpol_eff_pos, _ = self.tf.get_tf('rpbi/franka/panda_link0', 'interpol_target')
-        curr_eff_pos, _ = self.tf.get_tf('rpbi/world', 'rpbi/franka/panda_link8')
+        interpol_eff_pos, interpol_eff_rot = self.tf.get_tf('rpbi/franka/panda_link0', 'interpol_target')
+        curr_eff_pos, curr_eff_rot = self.tf.get_tf('rpbi/world', 'rpbi/franka/panda_link8')
 
         if interpol_eff_pos is not None:
             self.interpol_plan.append(interpol_eff_pos)
             self.actual_motion.append(curr_eff_pos)
+    
+            self.interpol_rotation.append(interpol_eff_rot)
+            self.actual_rotation.append(curr_eff_rot)
+
             self.time_of_motion.append(rospy.Time.now().to_sec() - self.init_time)
         else:
             self.init_time = rospy.Time.now().to_sec()
@@ -127,6 +174,41 @@ class Node:
         ax3.set_title("Z axis")
 
         fig.suptitle("Linear axes interpolation results", fontsize=16)
+
+
+
+        actual_rotation = np.asarray(self.actual_rotation)
+        interpol_rotation = np.asarray(self.interpol_rotation)
+
+        fig = plt.figure()
+        ax1 = plt.subplot(1, 4, 1)
+        ax1.plot(self.traj_plan[0, :], self.traj_plan[4, :], '*', markersize=14, label='Waypts')
+        ax1.plot(time_of_motion, interpol_rotation[:, 0], 'b', label='Inpterpolated plan')
+        ax1.plot(time_of_motion, -actual_rotation[:, 0], 'r', label='Actual rotation')
+        ax1.legend(loc="upper left")
+        ax1.set_title("W axis")
+
+        ax2 = plt.subplot(1, 4, 2)
+        ax2.plot(self.traj_plan[0, :], self.traj_plan[5, :], '*', markersize=14)
+        ax2.plot(time_of_motion, interpol_rotation[:, 1], 'b')
+        ax2.plot(time_of_motion, -actual_rotation[:, 1], 'r')
+        ax2.set_title("X axis")
+
+        ax3 = plt.subplot(1, 4, 3)
+        ax3.plot(self.traj_plan[0, :], self.traj_plan[6, :], '*', markersize=14)
+        ax3.plot(time_of_motion, interpol_rotation[:, 2], 'b')
+        ax3.plot(time_of_motion, -actual_rotation[:, 2], 'r')
+        ax3.set_title("Y axis")
+
+        ax3 = plt.subplot(1, 4, 4)
+        ax3.plot(self.traj_plan[0, :], self.traj_plan[7, :], '*', markersize=14)
+        ax3.plot(time_of_motion, interpol_rotation[:, 3], 'b')
+        ax3.plot(time_of_motion, -actual_rotation[:, 3], 'r')
+        ax3.set_title("Z axis")
+
+        fig.suptitle("actual_rotation", fontsize=16)
+
+
         plt.show()
 
     def spin(self):
@@ -139,6 +221,7 @@ class Node:
 
 def main():
     node = Node()
+    node.move_to_initial_pose()
     node.exec_plan()
     node.spin()
 
