@@ -1,0 +1,40 @@
+<launch>
+
+
+
+
+  <node pkg="ros_pybullet_interface" name="ros_pybullet_interface_node" type="ros_pybullet_interface_node.py">
+    <rosparam param="config" file="$(find ros_quat_ds)/configs/interpolation_pybullet/config.yaml"/>
+  </node>
+
+
+
+  <node pkg="ik_ros" name="ik_setup" type="ik_setup_node.py" args="pybullet" output="screen">
+    <rosparam param="config" file="$(find ros_quat_ds)/configs/interpolation_pybullet/ik_setup_config.yaml"/>
+    <param name="start_on_init" type="bool" value="true"/>
+    <remap from="ik/setup/pybullet/currentPosition" to="rpbi/franka/joint_states"/>
+    <remap from="ik" to="rpbi/franka/ik"/>
+  </node>
+
+
+
+
+
+  <node  pkg="rpbi_utils" name="interpolation"  type="interpolation_node.py" output="screen">
+    <param name="traj_config" value="$(find ros_quat_ds)/configs/interpolation_pybullet/traj_lwr.yaml" type="str"/>
+    <param name="consuming_freq" value="100.0" type="double"/>
+    <remap from="ros_pybullet_interface/waypt_traj" to="franka/ros_pybullet_interface/end_effector/waypt_traj"/>
+ </node>
+
+
+
+
+  <node pkg="ros_quat_ds" name="run" type="run_interpolation_pybullet.py" output="screen">
+    <param name="topic_name_4_waypoints" value="franka/ros_pybullet_interface/end_effector/waypt_traj" type="str"/>
+  </node>
+
+
+
+
+  
+</launch>

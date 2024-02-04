@@ -3,7 +3,9 @@ name: "franka"
 loadURDF:
   fileName: "{franka_panda_description}/robots/panda_arm.urdf"
   useFixedBase: 1
-  basePosition: [0, 0., 0.]
+
+object_tf:
+  offset: [0.5, 0., 0.]
 
 initial_joint_position:
   panda_joint1: 0.0
@@ -14,14 +16,16 @@ initial_joint_position:
   panda_joint6: 90.0
   panda_joint7: 0.0
 
-initial_revolute_joint_positions_are_deg: true
 is_visual_robot: false
 
 setJointMotorControlArray:
   controlMode: "POSITION_CONTROL"
 
+# enabled_joint_force_torque_sensors: ["lwr_arm_6_joint"]
 
 publish_joint_state_frequency: 30
 
 broadcast_link_states: true
-brodcast_link_states_frequency: 30
+self.broadcast_link_states_hz: 50
+
+start_ik_callback: true

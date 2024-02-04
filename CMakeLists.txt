@@ -167,7 +167,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/run_franka_joint_state.py
   scripts/run_franka_eff_state.py
-  scripts/run_interpolation.py
+  scripts/run_interpolation_pybullet.py
   scripts/traj_setup_node.py
   scripts/run_follow_traj.py
 

@@ -28,8 +28,12 @@ class Node:
 
         # Get parameters
         self.interface_name = sys.argv[1]
-        self.robot_name = rospy.get_param('~robot_name')
-        self.eff_name = rospy.get_param('~eff_name')
+    
+
+        self.robot_name = rospy.get_param(f'/ik_setup/config/robot_name')
+
+        self.eff_name = rospy.get_param(f'/ik_setup/config/link_name')
+
 
         # Get service handles
         self.move_to_eff_state = get_srv_handler(f'rpbi/{self.robot_name}/move_to_eff_state', ResetEffState)

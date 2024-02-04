@@ -29,9 +29,9 @@
 
 
 
-<node pkg="ros_quat_ds" name="start" type="run_follow_traj.py" args="pybullet">
-    <param name="robot_name" type="str" value="franka"/>  
-    <param name="eff_name" type="str" value="panda_link8"/>
+<node pkg="ros_quat_ds" name="follow_traj_node" type="run_follow_traj.py" args="pybullet">
 </node>
+
+
 
 </launch>
