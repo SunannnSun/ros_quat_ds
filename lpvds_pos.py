@@ -251,7 +251,7 @@ def lpv_ds(x, ds_gmm, A_g, b_g):
     return x_dot
 
 
-class lpv_ds_class:
+class lpvds_pos:
 
     def __init__(self):
 
@@ -274,7 +274,7 @@ class lpv_ds_class:
 
 
 if __name__ == "__main__":
-    a = lpv_ds_class()
+    a = lpvds_pos()
 
     a.step(np.array([0, 0, 0]).reshape(-1, 1), dt =1 )
 
