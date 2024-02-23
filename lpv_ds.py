@@ -22,11 +22,16 @@ def read_param(data):
 
     att = np.array(data['attractor'])
 
-    A = np.array(data['A']).reshape(M, M, K)
-    b = np.array(data['b']).reshape(K, M)
+    A = np.array(data['A']).reshape(K, M, M)
+    b = np.array(data['b']).reshape(M, K)
+
+    for k in range(K):
+                A[k, :, :] = A[k, :, :].T
+                # b[k] = b[k].T
+
 
     
-    return K, M, Priors, Mu, Sigma, att, A.T, b.T
+    return K, M, Priors, Mu, Sigma, att, A, b
 
 
 
@@ -246,7 +251,7 @@ def lpv_ds(x, ds_gmm, A_g, b_g):
     return x_dot
 
 
-class ds_opt:
+class lpv_ds_class:
 
     def __init__(self):
 
@@ -256,23 +261,20 @@ class ds_opt:
 
 
         self.ds_struct = rearrange_clusters(self.Priors, self.Mu, self.Sigma, self.att)
-
+        
 
     def step(self, x):
         ds_handle = lambda x_velo: lpv_ds(x_velo, self.ds_struct, self.A, self.b)
         
+        x = np.array(x).reshape(-1, 1)
         xd = ds_handle(x)
-
-        # x_next = x + xd * dt   
-        
-        # return x_next
 
         return xd
 
 
 
 if __name__ == "__main__":
-    a = ds_opt()
+    a = lpv_ds_class()
 
     a.step(np.array([0, 0, 0]).reshape(-1, 1), dt =1 )
 

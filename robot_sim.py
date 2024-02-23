@@ -1,45 +1,75 @@
 import sys
-
-sys.path.append('./src')
-
-import time
 import numpy as np
-# from utils import *
-from math import sin
-import random
 
-from panda_noball import Panda
+from src.panda_noball import Panda
 
 
 
-def move_to_pose(pos):
 
-    duration = 50
-    stepsize = 1e-3
+class robot_sim:
 
-    tol      = 1e-3
-    max_iter = int(duration / stepsize)
+    def __init__(self):
+
+        self.stepsize = 1e-3
+        self.duration = 50
+        self.tol      = 8e-3
+        self.max_iter = int(self.duration / self.stepsize)
+
+        self.robot = Panda(self.stepsize)
+        self.robot.setControlMode("torque")
+
+        self.lambda1 = 20
+        self.lambda2 = 100
+        self.lambda3 = 100
 
 
-    robot = Panda(stepsize)
-    robot.setControlMode("torque")
+    def move_to(self, end_pos, ori):
+        robot = self.robot
+        curr_pos = robot.solveForwardKinematics()[0]
 
-    lambda1 = 20
-    lambda2 = 100
-    lambda3 = 100
+        i = 0
+        while np.linalg.norm(curr_pos - end_pos) > self.tol:
+            if i > self.max_iter:
+                print("Exceed max iteration")
+                sys.exit(1)
+            if i % 10000 == 0:
+                print("Simulation time: {:.3f}".format(robot.t))
+            
+            fx = -3 * (curr_pos - end_pos)
+            curr_pos = self._step(fx, 0)
 
-    end_pos = robot.solveForwardKinematics()[0]
+        print("Reached the target pose")
 
-    i = 0
-    while np.linalg.norm(pos-end_pos) > tol:
-        if i > max_iter:
-            sys.exit(1)
-        if i % 1000 == 0:
-            print("Simulation time: {:.3f}".format(robot.t))
 
-        end_pos = robot.solveForwardKinematics()[0]
-        
-        fx = [-2 * (end_pos[0] - pos[0]), -2 * (end_pos[1] - pos[1]), -2 * (end_pos[2] - pos[2])]
+    def execute_ds(self, lpv_ds_class):
+        robot = self.robot
+        curr_pos = robot.solveForwardKinematics()[0]
+        att = lpv_ds_class.att
+
+        i = 0
+        while np.linalg.norm(att-curr_pos) > self.tol:
+            if i > self.max_iter:
+                print("Exceed max iteration")
+                sys.exit(1)
+            if i % 10000 == 0:
+                print("Simulation time: {:.3f}".format(robot.t))
+                print("Distance to att: {:.3f}".format(np.linalg.norm(att-curr_pos)))
+
+            fx = 10 * lpv_ds_class.step(curr_pos)[:, 0]
+            curr_pos = self._step(fx, 0)
+
+        print("Reached the target pose")
+
+
+    def _step(self, fx, f_ori):
+        """
+        Step forward using fx and f_ori and return the ee position
+        """
+        robot = self.robot
+
+        # curr_pos = robot.solveForwardKinematics()[0]
+        # curr_pos = np.array(curr_pos)
+        # fx = -2 * (curr_pos - end_pos)
 
         #### Compute damping matrix ####
         e1 = np.array(fx)/np.linalg.norm(fx)
@@ -54,7 +84,7 @@ def move_to_pose(pos):
         Q[:, 1] = np.transpose(e2)
         Q[:, 2] = np.transpose(e3)
 
-        Lambda = np.diag([lambda1, lambda2, lambda3])
+        Lambda = np.diag([self.lambda1, self.lambda2, self.lambda3])
 
         D = Q @ Lambda @ np.transpose(Q)
 
@@ -68,7 +98,6 @@ def move_to_pose(pos):
 
         ## Compute f_ori ##
         ori = robot.solveForwardKinematics()[1]
-        # print(ori)
 
         """
         Orientation in a format of the scalar being the last number
@@ -86,7 +115,6 @@ def move_to_pose(pos):
         temp = -s1*u2 + s2*u1 - Su1@u2
         dori = np.array([s1*s2+u1@u2.T, temp[0], temp[1], temp[2]])
         logdq = np.arccos(dori[0])*(np.array([dori[1], dori[2], dori[3]]) / np.linalg.norm(np.array([dori[1], dori[2], dori[3]])))
-        # omega_num = 2*logdq/stepsize
         f_ori = -10*logdq
 
         ## Compute fc_wrench ##
@@ -106,8 +134,6 @@ def move_to_pose(pos):
 
         D = Q @ Lambda @ np.transpose(Q)
         fc_wrench = -D @ (np.transpose(np.array(omega_current)) - np.transpose(f_ori))
-        # fc_wrench = -10*np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) @ (np.array(omega_current) - logdq)
-        # print(fc_wrench)
 
         #### Compute target torque ####
         Jacobian = np.zeros([6, 7])
@@ -121,27 +147,11 @@ def move_to_pose(pos):
         Jacobian_pos[0, :] = np.array(robot.getJacobian()[0])
         Jacobian_pos[1, :] = np.array(robot.getJacobian()[1])
         Jacobian_pos[2, :] = np.array(robot.getJacobian()[2])
-        # target_torque = [0, 0, 0, 0, 0, 0, 0]
-        # target_torque =(np.linalg.pinv(Jacobian_pos)) @ fc
+
         target_torque = np.transpose(Jacobian) @ np.concatenate((fc, fc_wrench))
-        # target_torque = np.linalg.pinv(Jacobian) @ np.concatenate((fc, fc_wrench))
+
         robot.setTargetTorques(target_torque)
 
-        # robot.setTargetPositions(robot.solveInverseKinematics([0, 0.3, 0.3], [0, 0, 0, -1]))
-        # joint_vel = np.linalg.pinv(Jacobian_pos) @ fx
-        # joint_vel = np.linalg.pinv(Jacobian) @ np.concatenate((fx, f_ori))
-        # print(robot.solveInverseKinematics([0, 0.3, 0.3], [1, 0, 0, 0]))
-        # robot.setTargetVelocity(list(joint_vel))
-
         robot.step()
-        # if i % 50 == 0:
-        #     # print(fc)
-        #     print(robot.solveForwardKinematics()[1])
-        #     # print(omega)
-        #     # print(quat)
-        #     # print("omega_lib: ", omega_current)
-        #     # print(target_torque)
-        # time.sleep(robot.stepsize)
 
-
-    
+        return np.array(robot.solveForwardKinematics()[0])
