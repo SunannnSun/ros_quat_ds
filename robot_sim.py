@@ -37,7 +37,7 @@ class robot_sim:
             if i % 10000 == 0:
                 print("Simulation time: {:.3f}".format(robot.t))
             
-            fx = -3 * (curr_pos - end_pos)
+            fx = -1 * (curr_pos - end_pos)
             f_ori = compute_f_ori(curr_ori, end_ori)
             curr_pos, curr_ori = self._step(fx, f_ori)
 
@@ -67,9 +67,9 @@ class robot_sim:
 
             fx = lpvds_pos.step(curr_pos)[:, 0]
 
-            f_ori, w_k = lpvds_ori.step(curr_pos.reshape(1, -1), R.from_quat(curr_ori), 5E-3)
+            f_ori, w_k = lpvds_ori.step(curr_pos.reshape(1, -1), R.from_quat(curr_ori), self.stepsize)
             # f_ori = compute_f_ori(curr_ori)
-            curr_pos, curr_ori = self._step(10 * fx, 100 * f_ori)
+            curr_pos, curr_ori = self._step(3 * fx, 1/10 * f_ori)
 
         print("Reached the target pose")
 

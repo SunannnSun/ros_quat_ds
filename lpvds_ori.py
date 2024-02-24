@@ -20,7 +20,7 @@ def compute_ang_vel(q_k, q_kp1, dt=0.1):
     # dq = q_k.inv() * q_kp1
 
 
-    dq = q_kp1.inv() * q_k
+    dq = q_kp1 * q_k.inv()
 
 
     dq = dq.as_rotvec()
@@ -47,9 +47,7 @@ class lpvds_ori:
         Priors = np.array(data['Priors'])
         Mu = np.array(data['Mu']).reshape(K, M)
         Sigma = np.array(data['Sigma']).reshape(K, M, M)
-
         att = np.array(data['att'])
-
         A = np.array(data['A']).reshape(K, 4, 4)
         
         q_normal_list = []
@@ -82,23 +80,12 @@ class lpvds_ori:
 
     def step(self, p_in, q_in, dt):
 
-
         K = self.K
         A = self.A
         q_att = self.q_att
         gmm   = self.gmm
 
-        dual_gmm = self.dual_gmm
-        w_init = dual_gmm.postLogProb(q_in).T
-
-        index_of_largest = np.argmax(w_init)
-
-        if index_of_largest <= (dual_gmm.K/2 - 1):
-            pass
-        else:
-            q_in = R.from_quat(-q_in.as_quat())
-
-
+        q_in = self._rectify(q_in)
         q_in_att  = riem_log(q_att, q_in)
         q_out_att = np.zeros((4, 1))
 
@@ -110,9 +97,28 @@ class lpvds_ori:
         q_out_q    = riem_exp(q_in, q_out_body) 
         q_out      = R.from_quat(q_out_q.reshape(4,))
 
-        w_out      = compute_ang_vel(q_in, q_out, 1)
+        w_out      = compute_ang_vel(q_in, q_out, dt)
         # q_next     = q_in * R.from_rotvec(w_out * dt)
 
         # return q_next, w_k
 
         return w_out, w_k
+    
+
+
+    def _rectify(self, q_init):
+        
+        """
+        Rectify q_init if it lies on the unmodeled half of the quaternion space
+        """
+        dual_gmm = self.dual_gmm
+        w_init = dual_gmm.postLogProb(q_init).T
+
+        # plot_tools.plot_gmm_prob(w_init, title="GMM Posterior Probability of Original Data")
+
+        index_of_largest = np.argmax(w_init)
+
+        if index_of_largest <= (dual_gmm.K/2 - 1):
+            return q_init
+        else:
+            return R.from_quat(-q_init.as_quat())
