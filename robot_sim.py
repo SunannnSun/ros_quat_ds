@@ -44,12 +44,11 @@ class robot_sim:
         print("Reached the target pose")
 
 
-    def execute_ds(self, lpvds_pos, lpvds_ori):
+    def execute_ds(self, end_pos, lpvds_ori):
         robot = self.robot
         curr_pos = np.array(robot.solveForwardKinematics()[0])
         curr_ori = np.array(robot.solveForwardKinematics()[1])
 
-        end_pos = lpvds_pos.att
         end_ori = lpvds_ori.q_att
 
         i = 0
@@ -65,11 +64,12 @@ class robot_sim:
                 print("Quat DS index:   {:d}".format(np.argmax(w_k)))
 
 
-            fx = lpvds_pos.step(curr_pos)[:, 0]
+            fx = -3 * (curr_pos - end_pos)
 
-            f_ori, w_k = lpvds_ori.step(curr_pos.reshape(1, -1), R.from_quat(curr_ori), 5E-3)
-            # f_ori = compute_f_ori(curr_ori)
-            curr_pos, curr_ori = self._step(10 * fx, 100 * f_ori)
+            f_ori, w_k = lpvds_ori.step(R.from_quat(curr_ori), self.stepsize)
+
+
+            curr_pos, curr_ori = self._step(fx, -1/5 * f_ori)
 
         print("Reached the target pose")
 

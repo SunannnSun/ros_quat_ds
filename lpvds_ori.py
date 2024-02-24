@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from scipy.stats import multivariate_normal
 
-from util.gmm_coupled import gmm as gmm_class
+from util.gmm import gmm as gmm_class
 from util.quat_tools import *
 
 
@@ -56,18 +56,18 @@ class lpvds_ori:
 
         for k in range(K):
 
-            Mu_k = (Mu[k, :3],  R.from_quat(Mu[k, 3:]) )
+            Mu_k = Mu[k, :]
             Sigma_k = Sigma[k, :, :]
 
             q_normal_list.append(
                 {
-                    "mu": Mu_k,
+                    "mu": R.from_quat(Mu_k),
                     "sigma": Sigma_k,
-                    "rv": multivariate_normal(np.hstack((Mu_k[0], np.zeros(4))), Sigma_k, allow_singular=True)
+                    "rv": multivariate_normal(np.zeros((4, )), Sigma_k, allow_singular=True)
                 }
             )
 
-        gmm = gmm_class(p_in=[], q_in=[], q_att=R.from_quat(att))
+        gmm = gmm_class(q_in=[], q_att=R.from_quat(att))
         gmm.K = K
         gmm.Prior = Priors
         gmm.q_normal_list = q_normal_list
@@ -80,8 +80,7 @@ class lpvds_ori:
         self.dual_gmm = gmm._dual_gmm()
         
 
-    def step(self, p_in, q_in, dt):
-
+    def step(self, q_in, dt):
 
         K = self.K
         A = self.A
@@ -102,7 +101,7 @@ class lpvds_ori:
         q_in_att  = riem_log(q_att, q_in)
         q_out_att = np.zeros((4, 1))
 
-        w_k = gmm.postLogProb(p_in, q_in)
+        w_k = gmm.postLogProb(q_in)
         for k in range(K):
             q_out_att += w_k[k, 0] * A[k] @ q_in_att.reshape(-1, 1)
 
@@ -110,7 +109,7 @@ class lpvds_ori:
         q_out_q    = riem_exp(q_in, q_out_body) 
         q_out      = R.from_quat(q_out_q.reshape(4,))
 
-        w_out      = compute_ang_vel(q_in, q_out, 1)
+        w_out      = compute_ang_vel(q_in, q_out, dt)
         # q_next     = q_in * R.from_rotvec(w_out * dt)
 
         # return q_next, w_k
