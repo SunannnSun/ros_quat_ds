@@ -9,6 +9,7 @@ from robot_sim import robot_sim as robot_sim_class
 
 init_pos = np.array([0.4, 0, 0.5])
 init_ori = np.array([0.70023204, -0.00707885, -0.03352073,  0.7130928 ])
+# init_ori = np.array([1, 0, 0, 0 ])
 
 
 lpvds_ori = lpvds_ori_class()

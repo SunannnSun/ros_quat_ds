@@ -69,7 +69,7 @@ class robot_sim:
             f_ori, w_k = lpvds_ori.step(R.from_quat(curr_ori), self.stepsize)
 
 
-            curr_pos, curr_ori = self._step(fx, -1/5 * f_ori)
+            curr_pos, curr_ori = self._step(fx,  f_ori)
 
         print("Reached the target pose")
 
