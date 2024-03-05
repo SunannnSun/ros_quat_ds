@@ -68,7 +68,13 @@ class robot_sim:
             fx = lpvds_pos.step(curr_pos)[:, 0]
 
             f_ori, w_k = lpvds_ori.step(curr_pos.reshape(1, -1), R.from_quat(curr_ori), self.stepsize)
-            # f_ori = compute_f_ori(curr_ori)
+
+            xdot = robot.getEndVelocity()
+
+            # if np.linalg.norm(xdot) < 10E-2 and np.linalg.norm(curr_pos-end_pos) > self.tol:
+            #     f_ori *= np.linalg.norm(xdot)
+
+
             curr_pos, curr_ori = self._step(3 * fx, 1/10 * f_ori)
 
         print("Reached the target pose")
